@@ -11,14 +11,18 @@ enum MarqflowDirection {
 }
 
 /// Immutable configuration for a [Marqflow] animation.
+///
+/// Defaults intentionally match the original CharacterBasedMarquee widget:
+/// 20 logical pixels per second, a 700 ms initial delay, a 900 ms pause after
+/// each round, looping enabled, repeating enabled, and a linear curve.
 @immutable
 class MarqflowConfig {
   /// Creates marquee configuration.
   const MarqflowConfig({
-    this.velocity = 30,
+    this.velocity = 20,
     this.direction = MarqflowDirection.left,
-    this.startDelay = const Duration(milliseconds: 600),
-    this.pauseAfterRound = const Duration(milliseconds: 800),
+    this.startDelay = const Duration(milliseconds: 700),
+    this.pauseAfterRound = const Duration(milliseconds: 900),
     this.loop = true,
     this.repeat = true,
     this.autoStart = true,
@@ -32,34 +36,32 @@ class MarqflowConfig {
           'textWidthInCharacters must be greater than zero',
         );
 
-  /// Travel speed in logical pixels per second.
+  /// Travel speed in logical pixels per second. Defaults to 20.
   final double velocity;
 
-  /// Direction of travel.
+  /// Direction of travel. Defaults to [MarqflowDirection.left].
   final MarqflowDirection direction;
 
-  /// Time to wait before the first animation starts.
+  /// Time to wait before the first animation starts. Defaults to 700 ms.
   final Duration startDelay;
 
-  /// Time to wait after reaching an edge before restarting.
+  /// Time to wait after reaching an edge before restarting. Defaults to 900 ms.
   final Duration pauseAfterRound;
 
   /// Whether to return to the starting edge after each round.
   ///
-  /// When false, the widget stops at the destination after one round.
+  /// Defaults to true, matching the original marquee behavior.
   final bool loop;
 
   /// Whether to continue starting rounds while [loop] is true.
   ///
-  /// Set to false to perform at most one round.
+  /// Defaults to true, matching the original marquee behavior.
   final bool repeat;
 
-  /// Whether animation starts automatically after layout.
+  /// Whether animation starts automatically after layout. Defaults to true.
   final bool autoStart;
 
-  /// Curve applied to the scrolling animation.
-  ///
-  /// Linear is recommended for constant marquee velocity.
+  /// Curve applied to the scrolling animation. Defaults to [Curves.linear].
   final Curve curve;
 
   /// Optional approximate viewport width expressed in character units.
