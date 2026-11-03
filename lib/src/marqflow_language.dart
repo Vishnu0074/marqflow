@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 /// Controls when a Marqflow animation is enabled based on locale.
 enum MarqflowLanguageMode {
   /// Always allow the marquee.
@@ -10,7 +12,8 @@ enum MarqflowLanguageMode {
   custom,
 }
 
-/// Configuration for locale-aware marquee behavior.
+/// Immutable configuration for locale-aware marquee behavior.
+@immutable
 class MarqflowLanguage {
   /// Creates locale filtering configuration.
   const MarqflowLanguage({
@@ -22,18 +25,18 @@ class MarqflowLanguage {
   /// The filtering strategy.
   final MarqflowLanguageMode mode;
 
-  /// Language codes allowed when [mode] is [MarqflowLanguageMode.custom].
+  /// Language codes allowed in custom mode.
   ///
-  /// When non-empty, this list takes precedence over [excludedLanguageCodes].
-  /// Codes are compared by their language subtag, case-insensitively.
+  /// When non-empty, this list takes precedence over
+  /// [excludedLanguageCodes]. Codes are compared case-insensitively.
   final List<String> allowedLanguageCodes;
 
-  /// Language codes excluded when [mode] is [MarqflowLanguageMode.custom].
+  /// Language codes excluded in custom mode.
   ///
   /// This list is used only when [allowedLanguageCodes] is empty.
   final List<String> excludedLanguageCodes;
 
-  /// Returns whether a locale's language code is allowed.
+  /// Returns whether the supplied locale language code is allowed.
   bool allows(String? languageCode) {
     if (mode == MarqflowLanguageMode.all) return true;
     if (languageCode == null || languageCode.isEmpty) return true;
@@ -49,11 +52,26 @@ class MarqflowLanguage {
     }
 
     if (excludedLanguageCodes.isNotEmpty) {
-      return !excludedLanguageCodes
-          .any((value) => value.toLowerCase() == code);
+      return !excludedLanguageCodes.any(
+        (value) => value.toLowerCase() == code,
+      );
     }
 
-    // An empty custom filter is intentionally conservative.
     return code != 'en';
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is MarqflowLanguage &&
+          mode == other.mode &&
+          listEquals(allowedLanguageCodes, other.allowedLanguageCodes) &&
+          listEquals(excludedLanguageCodes, other.excludedLanguageCodes);
+
+  @override
+  int get hashCode => Object.hash(
+        mode,
+        Object.hashAll(allowedLanguageCodes),
+        Object.hashAll(excludedLanguageCodes),
+      );
 }
