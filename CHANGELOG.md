@@ -1,3 +1,8 @@
+# 0.1.2
+
+* Use standard OSI-approved MIT license text.
+* Add documentation for `MarqflowController` default constructor.
+
 # 0.1.1
 
 * Fix test suite compilation and imports.

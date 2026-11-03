@@ -1,6 +1,6 @@
 name: marqflow
 description: A lightweight, customizable Flutter marquee widget with overflow detection and locale-aware behavior.
-version: 0.1.1
+version: 0.1.2
 homepage: https://github.com/Vishnu0074/marqflow
 repository: https://github.com/Vishnu0074/marqflow
 issue_tracker: https://github.com/Vishnu0074/marqflow/issues

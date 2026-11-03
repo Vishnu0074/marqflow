@@ -5,6 +5,9 @@ import 'package:flutter/foundation.dart';
 /// Attach the controller through [Marqflow.controller]. A controller should
 /// be connected to only one mounted marquee at a time.
 class MarqflowController extends ChangeNotifier {
+  /// Creates a [MarqflowController].
+  MarqflowController();
+
   VoidCallback? _onStart;
   VoidCallback? _onPause;
   VoidCallback? _onResume;
