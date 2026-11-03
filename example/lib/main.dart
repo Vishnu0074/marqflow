@@ -5,7 +5,9 @@ void main() {
   runApp(const MarqflowExampleApp());
 }
 
+/// Example application demonstrating [Marqflow] usage.
 class MarqflowExampleApp extends StatelessWidget {
+  /// Creates a [MarqflowExampleApp].
   const MarqflowExampleApp({super.key});
 
   @override
@@ -18,7 +20,9 @@ class MarqflowExampleApp extends StatelessWidget {
   }
 }
 
+/// Main example page presenting various marquee widgets.
 class MarqflowExamplePage extends StatefulWidget {
+  /// Creates a [MarqflowExamplePage].
   const MarqflowExamplePage({super.key});
 
   @override

@@ -1,7 +1,7 @@
 /// Marqflow: lightweight, configurable marquee widgets for Flutter.
 ///
 /// Import this library to use [Marqflow] and its configuration types.
-library marqflow;
+library;
 
 export 'src/marqflow.dart';
 export 'src/marqflow_config.dart';
