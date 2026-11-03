@@ -1,0 +1,27 @@
+name: Bug report
+description: Report a reproducible problem with Marqflow.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: "Please search existing issues before opening a new report."
+  - type: input
+    id: flutter
+    attributes:
+      label: Flutter version
+      placeholder: "flutter --version"
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Include steps to reproduce and expected behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: sample
+    attributes:
+      label: Minimal reproducible example
+      render: dart
