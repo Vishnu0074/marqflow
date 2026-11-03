@@ -71,7 +71,7 @@ class _MarqflowState extends State<Marqflow> {
   bool _paused = false;
   bool _stopped = false;
   bool _hasOverflow = false;
-  bool _autoStartPending = true;
+  late bool _autoStartPending = widget.config.autoStart;
 
   @override
   void initState() {
@@ -146,7 +146,13 @@ class _MarqflowState extends State<Marqflow> {
 
     final position = _scrollController.position;
     _hasOverflow = position.maxScrollExtent > 0.5;
-    if (position.hasPixels) position.jumpTo(0);
+    if (position.hasPixels) {
+      position.jumpTo(
+        widget.config.direction == MarqflowDirection.left
+            ? 0
+            : position.maxScrollExtent,
+      );
+    }
 
     if (!_hasOverflow || !_autoStartPending || _paused) return;
 
@@ -267,7 +273,14 @@ class _MarqflowState extends State<Marqflow> {
     _session++;
     _delayTimer?.cancel();
     _pauseTimer?.cancel();
-    if (_scrollController.hasClients) _scrollController.jumpTo(0);
+    if (_scrollController.hasClients) {
+      final position = _scrollController.position;
+      _scrollController.jumpTo(
+        widget.config.direction == MarqflowDirection.left
+            ? 0
+            : position.maxScrollExtent,
+      );
+    }
   }
 
   void _handleHover(bool hovering) {
