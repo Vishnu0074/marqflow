@@ -10,7 +10,7 @@ enum MarqflowDirection {
   right,
 }
 
-/// Configuration for a [Marqflow] animation.
+/// Immutable configuration for a [Marqflow] animation.
 @immutable
 class MarqflowConfig {
   /// Creates marquee configuration.
@@ -68,9 +68,35 @@ class MarqflowConfig {
   /// actual child. Omit it to use the available parent width.
   final int? textWidthInCharacters;
 
-  /// Empty space between repeated copies when a seamless marquee is used.
-  ///
-  /// Reserved for the seamless repetition mode; currently used as layout
-  /// spacing for duplicated content.
+  /// Empty space between repeated copies when seamless repetition is added.
   final double gap;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is MarqflowConfig &&
+          velocity == other.velocity &&
+          direction == other.direction &&
+          startDelay == other.startDelay &&
+          pauseAfterRound == other.pauseAfterRound &&
+          loop == other.loop &&
+          repeat == other.repeat &&
+          autoStart == other.autoStart &&
+          curve == other.curve &&
+          textWidthInCharacters == other.textWidthInCharacters &&
+          gap == other.gap;
+
+  @override
+  int get hashCode => Object.hash(
+        velocity,
+        direction,
+        startDelay,
+        pauseAfterRound,
+        loop,
+        repeat,
+        autoStart,
+        curve,
+        textWidthInCharacters,
+        gap,
+      );
 }
