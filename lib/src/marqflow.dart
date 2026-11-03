@@ -12,10 +12,13 @@ import 'marqflow_language.dart';
 /// the available viewport. Give Marqflow a bounded width, for example with a
 /// [SizedBox] or [Expanded].
 ///
+/// Its default animation values preserve the original CharacterBasedMarquee
+/// behavior: 20 px/s, 700 ms start delay, 900 ms pause, linear motion, and
+/// looping/repeating enabled.
+///
 /// Example:
 /// ```dart
 /// Marqflow(
-///   config: const MarqflowConfig(velocity: 28),
 ///   child: const Text('A title that may not fit'),
 /// )
 /// ```
@@ -27,7 +30,7 @@ class Marqflow extends StatefulWidget {
     this.config = const MarqflowConfig(),
     this.language = const MarqflowLanguage(),
     this.controller,
-    this.alignment = Alignment.centerLeft,
+    this.alignment = Alignment.center,
     this.restartKey,
     this.pauseOnPointerHover = false,
   });
@@ -45,6 +48,8 @@ class Marqflow extends StatefulWidget {
   final MarqflowController? controller;
 
   /// Alignment of content when it does not overflow.
+  ///
+  /// Defaults to [Alignment.center], matching the original widget.
   final AlignmentGeometry alignment;
 
   /// Change this value to explicitly restart animation after child data changes.
@@ -133,7 +138,6 @@ class _MarqflowState extends State<Marqflow> {
     }
 
     if (!_scrollController.hasClients) {
-      // The ScrollPosition is attached during layout; retry once after it.
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && !_disposed) _measureAndSchedule();
       });
@@ -141,8 +145,7 @@ class _MarqflowState extends State<Marqflow> {
     }
 
     final position = _scrollController.position;
-    final maxScroll = position.maxScrollExtent;
-    _hasOverflow = maxScroll > 0.5;
+    _hasOverflow = position.maxScrollExtent > 0.5;
     if (position.hasPixels) position.jumpTo(0);
 
     if (!_hasOverflow || !_autoStartPending || _paused) return;
@@ -175,28 +178,23 @@ class _MarqflowState extends State<Marqflow> {
         : 0.0;
     final distance = (target - position.pixels).abs();
 
-    if (distance <= 0.5) {
-      if (widget.config.loop && widget.config.repeat) {
-        _scheduleNextRound(session);
-      }
-      return;
-    }
-
-    final duration = Duration(
-      microseconds: (distance / widget.config.velocity * 1000000).round(),
-    );
-
-    try {
-      await _scrollController.animateTo(
-        target,
-        duration: duration,
-        curve: widget.config.curve,
+    if (distance > 0.5) {
+      final duration = Duration(
+        microseconds: (distance / widget.config.velocity * 1000000).round(),
       );
-    } on TickerCanceled {
-      return;
-    } catch (_) {
-      // The ScrollPosition may detach during route removal or tree updates.
-      return;
+
+      try {
+        await _scrollController.animateTo(
+          target,
+          duration: duration,
+          curve: widget.config.curve,
+        );
+      } on TickerCanceled {
+        return;
+      } catch (_) {
+        // The ScrollPosition may detach during route removal or tree updates.
+        return;
+      }
     }
 
     if (!mounted ||
@@ -207,22 +205,24 @@ class _MarqflowState extends State<Marqflow> {
       return;
     }
 
-    if (!widget.config.loop || !widget.config.repeat) return;
-    _scheduleNextRound(session);
-  }
-
-  void _scheduleNextRound(int session) {
+    // Preserve the original behavior: pause, reset to the beginning, then
+    // decide whether another round should run.
     _pauseTimer?.cancel();
     _pauseTimer = Timer(widget.config.pauseAfterRound, () {
-      if (!mounted || session != _session || !_scrollController.hasClients) {
+      if (!mounted ||
+          session != _session ||
+          !_scrollController.hasClients ||
+          _paused ||
+          _stopped) {
         return;
       }
 
       final resetOffset = widget.config.direction == MarqflowDirection.left
           ? 0.0
           : _scrollController.position.maxScrollExtent;
-
       _scrollController.jumpTo(resetOffset);
+
+      if (!widget.config.loop || !widget.config.repeat) return;
       _runRound(session);
     });
   }
@@ -232,7 +232,6 @@ class _MarqflowState extends State<Marqflow> {
     _delayTimer?.cancel();
     _pauseTimer?.cancel();
     if (_scrollController.hasClients) {
-      // jumpTo cancels any currently active ScrollActivity.
       _scrollController.position.hold(() {});
     }
   }
@@ -251,8 +250,6 @@ class _MarqflowState extends State<Marqflow> {
     _session++;
     _delayTimer?.cancel();
     _pauseTimer?.cancel();
-    // A zero-distance jump is not needed; ScrollController.jumpTo cancels
-    // an in-flight animation while preserving the current offset.
     if (_scrollController.hasClients) {
       _scrollController.position.hold(() {});
     }
