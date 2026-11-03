@@ -1,3 +1,10 @@
+# 0.1.1
+
+* Fix test suite compilation and imports.
+* Respect auto-start configuration and properly initialize reverse direction.
+* Preserve default marquee configuration and centered alignment.
+* Modernize library directive and add documentation to example widgets.
+
 # 0.1.0
 
 * Initial public development release.
