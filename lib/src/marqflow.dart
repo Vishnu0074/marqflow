@@ -214,14 +214,11 @@ class _MarqflowState extends State<Marqflow> {
   void _scheduleNextRound(int session) {
     _pauseTimer?.cancel();
     _pauseTimer = Timer(widget.config.pauseAfterRound, () {
-      if (!mounted ||
-          session != _session ||
-          !_scrollController.hasClients) {
+      if (!mounted || session != _session || !_scrollController.hasClients) {
         return;
       }
 
-      final resetOffset =
-          widget.config.direction == MarqflowDirection.left
+      final resetOffset = widget.config.direction == MarqflowDirection.left
           ? 0.0
           : _scrollController.position.maxScrollExtent;
 

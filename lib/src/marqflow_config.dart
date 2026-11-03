@@ -25,12 +25,12 @@ class MarqflowConfig {
     this.curve = Curves.linear,
     this.textWidthInCharacters,
     this.gap = 32,
-  }) : assert(velocity > 0, 'velocity must be greater than zero'),
-       assert(gap >= 0, 'gap must not be negative'),
-       assert(
-         textWidthInCharacters == null || textWidthInCharacters > 0,
-         'textWidthInCharacters must be greater than zero',
-       );
+  })  : assert(velocity > 0, 'velocity must be greater than zero'),
+        assert(gap >= 0, 'gap must not be negative'),
+        assert(
+          textWidthInCharacters == null || textWidthInCharacters > 0,
+          'textWidthInCharacters must be greater than zero',
+        );
 
   /// Travel speed in logical pixels per second.
   final double velocity;
