@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 
 /// Imperative controls for a [Marqflow] widget.
 ///
-/// Attach the controller through [Marqflow.controller]. The controller can be
-/// shared with only one mounted marquee at a time.
+/// Attach the controller through [Marqflow.controller]. A controller should
+/// be connected to only one mounted marquee at a time.
 class MarqflowController extends ChangeNotifier {
   VoidCallback? _onStart;
   VoidCallback? _onPause;
@@ -39,7 +39,6 @@ class MarqflowController extends ChangeNotifier {
     _onResume = resume;
     _onStop = stop;
     _isAttached = true;
-    notifyListeners();
   }
 
   /// Disconnects a marquee state from this controller.
@@ -50,6 +49,5 @@ class MarqflowController extends ChangeNotifier {
     _onResume = null;
     _onStop = null;
     _isAttached = false;
-    notifyListeners();
   }
 }
