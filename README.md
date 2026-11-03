@@ -4,12 +4,11 @@ A lightweight, customizable marquee widget for Flutter. Marqflow scrolls any wid
 
 [![Pub](https://img.shields.io/pub/v/marqflow.svg)](https://pub.dev/packages/marqflow)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Dart](https://img.shields.io/badge/Dart-3.4%2B-blue.svg)](https://dart.dev)
 
 ## Features
 
 - Accepts any Flutter widget as its child.
-- Automatically scrolls only when the content overflows.
+- Detects horizontal overflow and scrolls only when needed.
 - Configurable velocity, direction, delay, pause, curve, and looping.
 - Optional locale-aware language filtering.
 - Controller API for start, pause, resume, and stop.
@@ -25,11 +24,7 @@ dependencies:
   marqflow: ^0.1.0
 ```
 
-Then run:
-
-```sh
-flutter pub get
-```
+Run `flutter pub get`.
 
 ## Basic usage
 
@@ -52,6 +47,8 @@ class SongTitle extends StatelessWidget {
         child: const Text(
           'A very long song title that may not fit',
           maxLines: 1,
+          softWrap: false,
+          overflow: TextOverflow.visible,
           style: TextStyle(fontSize: 16),
         ),
       ),
@@ -59,6 +56,8 @@ class SongTitle extends StatelessWidget {
   }
 }
 ```
+
+Marqflow needs a bounded viewport width. Use `SizedBox`, `ConstrainedBox`, or `Expanded` to provide one.
 
 ## Configuration
 
@@ -78,11 +77,9 @@ Marqflow(
 )
 ```
 
-The widget uses its parent's available width as its viewport. Give it a bounded width (for example with `SizedBox`, `Expanded`, or `ConstrainedBox`) for predictable behavior. `textWidthInCharacters` is an optional approximate viewport width convenience; it is not a substitute for actual text measurement.
+The default viewport is the width provided by the parent. The optional `textWidthInCharacters` setting creates an approximate text-sized viewport; it is a convenience rather than precise glyph measurement.
 
 ## Any widget as a child
-
-Marqflow is not limited to text:
 
 ```dart
 Marqflow(
@@ -99,28 +96,25 @@ Marqflow(
 
 ## Controller
 
-Use `MarqflowController` when you need external playback controls:
-
 ```dart
 final controller = MarqflowController();
 
-// Attach to the widget:
 Marqflow(
   controller: controller,
   child: const Text('A long title'),
 )
 
-// Then call:
+// External controls:
 controller.pause();
 controller.resume();
 controller.start();
 controller.stop();
 
-// Dispose the controller with its owner:
+// Dispose the controller with its owner.
 controller.dispose();
 ```
 
-A controller is intended to be attached to one mounted Marqflow widget at a time.
+A controller should be attached to only one mounted Marqflow widget at a time.
 
 ## Locale filtering
 
@@ -135,7 +129,7 @@ Marqflow(
 )
 ```
 
-To allow only selected language codes:
+Allow only selected language codes:
 
 ```dart
 Marqflow(
@@ -147,7 +141,7 @@ Marqflow(
 )
 ```
 
-Locale filtering checks the app's current locale; it does not identify the language of the child text. For content-specific behavior, select the configuration explicitly.
+Filtering uses the application's current locale. It does not identify the language of the child text.
 
 ## Pause on hover
 
@@ -158,12 +152,9 @@ Marqflow(
 )
 ```
 
-## Accessibility and layout notes
+## Motion and accessibility
 
-- Provide a bounded width around Marqflow.
-- Keep important information available elsewhere when motion is disabled or reduced.
-- Avoid relying on animation alone to communicate essential information.
-- Marqflow does not currently duplicate content for a seamless continuous loop; it animates to an edge and resets between rounds.
+Marqflow does not currently duplicate child content for seamless continuous scrolling; it animates to an edge and resets between rounds. For important information, provide an accessible non-animated alternative and avoid communicating essential meaning through motion alone.
 
 ## Contributing
 
