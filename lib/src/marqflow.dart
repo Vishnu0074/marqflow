@@ -8,9 +8,9 @@ import 'marqflow_language.dart';
 
 /// A lightweight marquee that scrolls any widget when it overflows.
 ///
-/// Marqflow measures the laid-out child and starts scrolling only when the
-/// content is wider than the available viewport. The child can be any widget;
-/// text-specific measurement is not required.
+/// Marqflow measures the laid-out child and scrolls only when it is wider than
+/// the available viewport. Give Marqflow a bounded width, for example with a
+/// [SizedBox] or [Expanded].
 ///
 /// Example:
 /// ```dart
@@ -50,15 +50,14 @@ class Marqflow extends StatefulWidget {
   /// Change this value to explicitly restart animation after child data changes.
   final Object? restartKey;
 
-  /// Whether pointer hover pauses animation (desktop and web).
+  /// Whether pointer hover pauses animation on supported pointer platforms.
   final bool pauseOnPointerHover;
 
   @override
   State<Marqflow> createState() => _MarqflowState();
 }
 
-class _MarqflowState extends State<Marqflow>
-    with SingleTickerProviderStateMixin {
+class _MarqflowState extends State<Marqflow> {
   final ScrollController _scrollController = ScrollController();
   Timer? _delayTimer;
   Timer? _pauseTimer;
@@ -67,13 +66,13 @@ class _MarqflowState extends State<Marqflow>
   bool _paused = false;
   bool _stopped = false;
   bool _hasOverflow = false;
-  double _maxScrollExtent = 0;
+  bool _autoStartPending = true;
 
   @override
   void initState() {
     super.initState();
     _attachController();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _measureAndSchedule());
+    _scheduleAfterLayout();
   }
 
   @override
@@ -95,7 +94,10 @@ class _MarqflowState extends State<Marqflow>
         oldWidget.config != widget.config ||
         oldWidget.language != widget.language ||
         oldWidget.restartKey != widget.restartKey ||
-        oldWidget.alignment != widget.alignment) {
+        oldWidget.alignment != widget.alignment ||
+        oldWidget.pauseOnPointerHover != widget.pauseOnPointerHover) {
+      _stopped = false;
+      _autoStartPending = widget.config.autoStart;
       _scheduleAfterLayout();
     }
   }
@@ -122,30 +124,31 @@ class _MarqflowState extends State<Marqflow>
 
   void _measureAndSchedule() {
     if (!mounted || _disposed) return;
+
     _invalidateSession();
 
-    if (!_languageAllows || !widget.config.autoStart || _stopped) {
-      setState(() => _hasOverflow = false);
+    if (!_languageAllows || _stopped) {
+      _hasOverflow = false;
       return;
     }
 
     if (!_scrollController.hasClients) {
+      // The ScrollPosition is attached during layout; retry once after it.
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _measureAndSchedule();
+        if (mounted && !_disposed) _measureAndSchedule();
       });
       return;
     }
 
     final position = _scrollController.position;
-    _maxScrollExtent = position.maxScrollExtent;
-    _hasOverflow = _maxScrollExtent > 0.5;
+    final maxScroll = position.maxScrollExtent;
+    _hasOverflow = maxScroll > 0.5;
     if (position.hasPixels) position.jumpTo(0);
 
-    if (_hasOverflow) {
-      _scheduleStart();
-    } else {
-      setState(() {});
-    }
+    if (!_hasOverflow || !_autoStartPending || _paused) return;
+
+    _autoStartPending = false;
+    _scheduleStart();
   }
 
   void _scheduleStart() {
@@ -155,12 +158,14 @@ class _MarqflowState extends State<Marqflow>
       if (!mounted || session != _session || _paused || _stopped) return;
       _runRound(session);
     });
-    setState(() {});
   }
 
   Future<void> _runRound(int session) async {
-    if (!mounted || !_scrollController.hasClients ||
-        session != _session || _paused || _stopped) {
+    if (!mounted ||
+        !_scrollController.hasClients ||
+        session != _session ||
+        _paused ||
+        _stopped) {
       return;
     }
 
@@ -168,15 +173,11 @@ class _MarqflowState extends State<Marqflow>
     final target = widget.config.direction == MarqflowDirection.left
         ? position.maxScrollExtent
         : 0.0;
-
     final distance = (target - position.pixels).abs();
+
     if (distance <= 0.5) {
       if (widget.config.loop && widget.config.repeat) {
-        _pauseTimer = Timer(widget.config.pauseAfterRound, () {
-          if (mounted && session == _session) {
-            _resetForNextRound(session);
-          }
-        });
+        _scheduleNextRound(session);
       }
       return;
     }
@@ -194,46 +195,70 @@ class _MarqflowState extends State<Marqflow>
     } on TickerCanceled {
       return;
     } catch (_) {
-      // ScrollPosition can be detached while a route is being removed.
+      // The ScrollPosition may detach during route removal or tree updates.
       return;
     }
 
-    if (!mounted || session != _session || _paused || _stopped) return;
+    if (!mounted ||
+        session != _session ||
+        _paused ||
+        _stopped ||
+        !_scrollController.hasClients) {
+      return;
+    }
 
     if (!widget.config.loop || !widget.config.repeat) return;
-
-    _pauseTimer?.cancel();
-    _pauseTimer = Timer(widget.config.pauseAfterRound, () {
-      if (mounted && session == _session) _resetForNextRound(session);
-    });
+    _scheduleNextRound(session);
   }
 
-  void _resetForNextRound(int session) {
-    if (!mounted || !_scrollController.hasClients || session != _session) return;
-    _scrollController.jumpTo(
-      widget.config.direction == MarqflowDirection.left
-          ? 0
-          : _scrollController.position.maxScrollExtent,
-    );
-    _runRound(session);
+  void _scheduleNextRound(int session) {
+    _pauseTimer?.cancel();
+    _pauseTimer = Timer(widget.config.pauseAfterRound, () {
+      if (!mounted ||
+          session != _session ||
+          !_scrollController.hasClients) {
+        return;
+      }
+
+      final resetOffset =
+          widget.config.direction == MarqflowDirection.left
+          ? 0.0
+          : _scrollController.position.maxScrollExtent;
+
+      _scrollController.jumpTo(resetOffset);
+      _runRound(session);
+    });
   }
 
   void _invalidateSession() {
     _session++;
     _delayTimer?.cancel();
     _pauseTimer?.cancel();
+    if (_scrollController.hasClients) {
+      // jumpTo cancels any currently active ScrollActivity.
+      _scrollController.position.hold(() {});
+    }
   }
 
   void _start() {
     if (!mounted || !_languageAllows) return;
     _stopped = false;
     _paused = false;
+    _autoStartPending = true;
     _scheduleAfterLayout();
   }
 
   void _pause() {
+    if (_paused) return;
     _paused = true;
-    _invalidateSession();
+    _session++;
+    _delayTimer?.cancel();
+    _pauseTimer?.cancel();
+    // A zero-distance jump is not needed; ScrollController.jumpTo cancels
+    // an in-flight animation while preserving the current offset.
+    if (_scrollController.hasClients) {
+      _scrollController.position.hold(() {});
+    }
   }
 
   void _resume() {
@@ -245,12 +270,13 @@ class _MarqflowState extends State<Marqflow>
   void _stop() {
     _stopped = true;
     _paused = false;
-    _invalidateSession();
+    _session++;
+    _delayTimer?.cancel();
+    _pauseTimer?.cancel();
     if (_scrollController.hasClients) _scrollController.jumpTo(0);
   }
 
   void _handleHover(bool hovering) {
-    if (!widget.pauseOnPointerHover) return;
     if (hovering) {
       _pause();
     } else {
@@ -261,7 +287,9 @@ class _MarqflowState extends State<Marqflow>
   @override
   void dispose() {
     _disposed = true;
-    _invalidateSession();
+    _session++;
+    _delayTimer?.cancel();
+    _pauseTimer?.cancel();
     widget.controller?.detach();
     _scrollController.dispose();
     super.dispose();
@@ -272,41 +300,46 @@ class _MarqflowState extends State<Marqflow>
     final maxWidth = widget.config.textWidthInCharacters == null
         ? null
         : widget.config.textWidthInCharacters! *
-            (widget.child is Text
-                ? ((widget.child as Text).style?.fontSize ??
-                    DefaultTextStyle.of(context).style.fontSize ??
-                    14) *
-                    0.6
-                : 14 * 0.6);
+            ((widget.child is Text
+                    ? ((widget.child as Text).style?.fontSize ??
+                        DefaultTextStyle.of(context).style.fontSize ??
+                        14)
+                    : 14) *
+                0.6);
 
-    final viewport = LayoutBuilder(
+    return LayoutBuilder(
       builder: (context, constraints) {
+        final availableWidth = constraints.maxWidth;
         final width = maxWidth == null
-            ? constraints.maxWidth
-            : maxWidth.clamp(0.0, constraints.maxWidth);
-        return SizedBox(
+            ? availableWidth
+            : availableWidth.isFinite
+                ? maxWidth.clamp(0.0, availableWidth).toDouble()
+                : maxWidth;
+
+        final child = SizedBox(
           width: width.isFinite ? width : null,
           child: ClipRect(
-            child: Align(
-              alignment: widget.alignment,
-              child: SingleChildScrollView(
-                controller: _scrollController,
-                scrollDirection: Axis.horizontal,
-                physics: const NeverScrollableScrollPhysics(),
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              scrollDirection: Axis.horizontal,
+              physics: const NeverScrollableScrollPhysics(),
+              child: Align(
+                alignment: widget.alignment,
+                widthFactor: 1,
                 child: widget.child,
               ),
             ),
           ),
         );
+
+        return widget.pauseOnPointerHover
+            ? MouseRegion(
+                onEnter: (_) => _handleHover(true),
+                onExit: (_) => _handleHover(false),
+                child: child,
+              )
+            : child;
       },
     );
-
-    return widget.pauseOnPointerHover
-        ? MouseRegion(
-            onEnter: (_) => _handleHover(true),
-            onExit: (_) => _handleHover(false),
-            child: viewport,
-          )
-        : viewport;
   }
 }
