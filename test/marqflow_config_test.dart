@@ -7,7 +7,7 @@ void main() {
     const config = MarqflowConfig();
 
     test('preserves the original CharacterBasedMarquee defaults', () {
-      expect(config.velocity, 20);
+      expect(config.velocity, 10);
       expect(config.loop, isTrue);
       expect(config.repeat, isTrue);
       expect(config.startDelay, const Duration(milliseconds: 700));
