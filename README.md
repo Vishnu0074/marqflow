@@ -1,6 +1,6 @@
 # Marqflow
 
-A lightweight, customizable marquee widget for Flutter. Marqflow scrolls any widget when it overflows its viewport and provides configurable motion, locale filtering, and controller-based playback controls.
+A lightweight, customizable marquee widget for Flutter. Marqflow scrolls any widget when it overflows its viewport and provides configurable motion, locale filtering, and controller-based playback controls. Its default speed is a gentle 10 logical pixels per second; customize it with `MarqflowConfig.velocity`.
 
 [![Pub](https://img.shields.io/pub/v/marqflow.svg)](https://pub.dev/packages/marqflow)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
