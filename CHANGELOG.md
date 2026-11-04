@@ -1,4 +1,4 @@
-# Unreleased
+# 0.1.3
 
 * Reduce the default marquee velocity from 20 to 10 logical pixels per second.
 
