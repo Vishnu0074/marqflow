@@ -1,3 +1,7 @@
+# Unreleased
+
+* Reduce the default marquee velocity from 20 to 10 logical pixels per second.
+
 # 0.1.2
 
 * Use standard OSI-approved MIT license text.
