@@ -13,13 +13,13 @@ enum MarqflowDirection {
 /// Immutable configuration for a [Marqflow] animation.
 ///
 /// Defaults intentionally match the original CharacterBasedMarquee widget:
-/// 20 logical pixels per second, a 700 ms initial delay, a 900 ms pause after
+/// 10 logical pixels per second, a 700 ms initial delay, a 900 ms pause after
 /// each round, looping enabled, repeating enabled, and a linear curve.
 @immutable
 class MarqflowConfig {
   /// Creates marquee configuration.
   const MarqflowConfig({
-    this.velocity = 20,
+    this.velocity = 10,
     this.direction = MarqflowDirection.left,
     this.startDelay = const Duration(milliseconds: 700),
     this.pauseAfterRound = const Duration(milliseconds: 900),
@@ -36,7 +36,7 @@ class MarqflowConfig {
           'textWidthInCharacters must be greater than zero',
         );
 
-  /// Travel speed in logical pixels per second. Defaults to 20.
+  /// Travel speed in logical pixels per second. Defaults to 10.
   final double velocity;
 
   /// Direction of travel. Defaults to [MarqflowDirection.left].
