@@ -1,6 +1,7 @@
-/// Marqflow: lightweight, configurable marquee widgets for Flutter.
+/// Marqflow: a lightweight Flutter text marquee for overflowing text.
 ///
-/// Import this library to use [Marqflow] and its configuration types.
+/// Marqflow is particularly useful for long and localized text. Import this
+/// library to use [Marqflow] and its configuration types.
 library;
 
 export 'src/marqflow.dart';
