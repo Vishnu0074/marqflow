@@ -6,14 +6,16 @@ import 'marqflow_config.dart';
 import 'marqflow_controller.dart';
 import 'marqflow_language.dart';
 
-/// A lightweight marquee that scrolls any widget when it overflows.
+/// A lightweight text marquee that scrolls overflowing text horizontally.
 ///
-/// Marqflow measures the laid-out child and scrolls only when it is wider than
-/// the available viewport. Give Marqflow a bounded width, for example with a
-/// [SizedBox] or [Expanded].
+/// Marqflow is designed primarily for [Text] content, including localized
+/// strings whose rendered width can vary between languages. It measures the
+/// laid-out child and scrolls only when it is wider than the available
+/// viewport. Give Marqflow a bounded width, for example with a [SizedBox] or
+/// [Expanded]. The [child] parameter remains a [Widget] for API compatibility.
 ///
 /// Its default animation values preserve the original CharacterBasedMarquee
-/// behavior: 20 px/s, 700 ms start delay, 900 ms pause, linear motion, and
+/// behavior: 10 px/s default speed, 700 ms start delay, 900 ms pause, linear motion, and
 /// looping/repeating enabled.
 ///
 /// Example:
@@ -35,7 +37,11 @@ class Marqflow extends StatefulWidget {
     this.pauseOnPointerHover = false,
   });
 
-  /// Content to display and scroll.
+  /// Text content to display and scroll.
+  ///
+  /// A [Text] widget with [Text.maxLines] set to 1 and [Text.softWrap] set to
+  /// false is recommended for typical marquee use. The parameter remains a
+  /// [Widget] to preserve compatibility with existing package users.
   final Widget child;
 
   /// Animation behavior.
