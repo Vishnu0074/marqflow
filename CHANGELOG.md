@@ -1,6 +1,8 @@
 # 0.1.3
 
 * Reduce the default marquee velocity from 20 to 10 logical pixels per second.
+* Refocus package documentation on overflowing and localized text.
+* Update pub.dev description and topics for text marquee and localization discovery.
 
 # 0.1.2
 
