@@ -1,15 +1,15 @@
 name: marqflow
-description: A lightweight, customizable Flutter marquee widget with overflow detection and locale-aware behavior.
+description: A lightweight Flutter text marquee for automatically scrolling overflowing and localized text.
 version: 0.1.3
 homepage: https://github.com/Vishnu0074/marqflow
 repository: https://github.com/Vishnu0074/marqflow
 issue_tracker: https://github.com/Vishnu0074/marqflow/issues
 topics:
   - marquee
-  - scrolling
-  - animation
   - text
-  - widgets
+  - scrolling
+  - localization
+  - internationalization
 
 environment:
   sdk: '>=3.4.0 <4.0.0'
